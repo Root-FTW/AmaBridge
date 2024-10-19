@@ -1,4 +1,3 @@
-```markdown
 # AmaBridge
 
 **AmaBridge** is a Python-based automation tool that serves as a bridge between users and the powerful [OWASP Amass](https://github.com/OWASP/Amass) framework. Designed to simplify and enhance DNS enumeration and subdomain discovery, AmaBridge offers an intuitive interface, organized result management, and flexible configuration options without the need for extensive command-line interactions.
