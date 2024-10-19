@@ -3,8 +3,18 @@ import subprocess
 import json
 import sys
 import datetime
-import shutil
-import urllib.request
+from colorama import init, Fore, Style
+import pyfiglet
+
+# Inicializar Colorama
+init(autoreset=True)
+
+def imprimir_ascii_art():
+    """
+    Imprime el título del proyecto en ASCII art con colores.
+    """
+    ascii_art = pyfiglet.figlet_format("AmaBridge", font="slant")
+    print(Fore.CYAN + ascii_art)
 
 def obtener_wordlist():
     """
@@ -12,30 +22,33 @@ def obtener_wordlist():
     Si es así, solicita la ruta local o la URL y retorna la ruta local de la wordlist.
     Si no, retorna None.
     """
-    respuesta = input("Do you have a wordlist? (yes/no): ").strip().lower()
-    if respuesta in ['yes', 'y']:
-        ruta_wordlist = input("Please enter the local path or URL of your wordlist: ").strip()
-        if ruta_wordlist.startswith("http://") or ruta_wordlist.startswith("https://"):
-            # Descargar la wordlist desde la URL
-            nombre_archivo = os.path.basename(ruta_wordlist)
-            ruta_local = os.path.join(os.getcwd(), nombre_archivo)
-            try:
-                print(f"Downloading wordlist from {ruta_wordlist}...")
-                urllib.request.urlretrieve(ruta_wordlist, ruta_local)
-                print(f"Wordlist downloaded and saved to {ruta_local}")
-                return ruta_local
-            except Exception as e:
-                print(f"Failed to download wordlist from URL. Error: {e}")
-                return None
-        else:
-            # Verificar si la ruta local existe
-            if os.path.exists(ruta_wordlist):
-                return ruta_wordlist
+    while True:
+        respuesta = input(Fore.YELLOW + "Do you have a wordlist? (yes/no): ").strip().lower()
+        if respuesta in ['yes', 'y']:
+            ruta_wordlist = input(Fore.YELLOW + "Please enter the local path or URL of your wordlist: ").strip()
+            if ruta_wordlist.startswith("http://") or ruta_wordlist.startswith("https://"):
+                # Descargar la wordlist desde la URL
+                nombre_archivo = os.path.basename(ruta_wordlist)
+                ruta_local = os.path.join(os.getcwd(), nombre_archivo)
+                try:
+                    print(Fore.GREEN + f"Downloading wordlist from {ruta_wordlist}...")
+                    subprocess.run(["powershell", "-Command", f"Invoke-WebRequest -Uri {ruta_wordlist} -OutFile {ruta_local}"], check=True)
+                    print(Fore.GREEN + f"Wordlist downloaded and saved to {ruta_local}")
+                    return ruta_local
+                except Exception as e:
+                    print(Fore.RED + f"Failed to download wordlist from URL. Error: {e}")
+                    return None
             else:
-                print(f"The specified wordlist path does not exist: {ruta_wordlist}")
-                return None
-    else:
-        return None
+                # Verificar si la ruta local existe
+                if os.path.exists(ruta_wordlist):
+                    return ruta_wordlist
+                else:
+                    print(Fore.RED + f"The specified wordlist path does not exist: {ruta_wordlist}")
+                    return None
+        elif respuesta in ['no', 'n']:
+            return None
+        else:
+            print(Fore.RED + "Invalid input. Please enter 'yes' or 'no'.")
 
 def crear_carpeta_resultados():
     """
@@ -44,7 +57,9 @@ def crear_carpeta_resultados():
     ruta_result = os.path.join(os.getcwd(), "Result")
     if not os.path.exists(ruta_result):
         os.makedirs(ruta_result)
-        print(f"Created the output directory: {ruta_result}")
+        print(Fore.GREEN + f"Created the output directory: {ruta_result}")
+    else:
+        print(Fore.GREEN + f"The output directory already exists: {ruta_result}")
     return ruta_result
 
 def ejecutar_amass(dominio, ruta_salida, wordlist, tiempo):
@@ -66,65 +81,62 @@ def ejecutar_amass(dominio, ruta_salida, wordlist, tiempo):
     
     if wordlist:
         comando.extend(["-w", wordlist])
+        print(Fore.GREEN + f"Using wordlist: {wordlist}")
     
-    print(f"\nExecuting Amass for domain: {dominio}")
+    print(Fore.CYAN + f"\n[+]{Fore.WHITE} Executing Amass for domain: {Fore.YELLOW}{dominio}")
     try:
-        subprocess.run(comando, check=True)
-        print(f"Amass enumeration completed for {dominio}.")
+        proceso = subprocess.run(comando, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(Fore.GREEN + "[+]" + Fore.WHITE + " Amass enumeration completed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error executing Amass for {dominio}: {e}")
+        print(Fore.RED + f"[-] Error executing Amass for {dominio}: {e.stderr}")
         return False
     return True
 
 def procesar_txt(ruta_txt):
     """
-    Procesa el archivo .txt generado por Amass y extrae los subdominios.
+    Procesa el archivo .txt generado por Amass y muestra los subdominios únicos.
     Añade un separador para diferenciar múltiples escaneos.
     """
-    if not os.path.exists(ruta_txt):
-        print(f"Subdomain list file not found: {ruta_txt}")
-        return
-    
-    with open(ruta_txt, "r", encoding='utf-8') as file:
-        lines = file.readlines()
-    
-    subdominios = set()
-    for line in lines:
-        if "node -->" in line:
-            partes = line.split(" --> ")
-            if len(partes) >= 3:
-                subdominio = partes[2].split(" (FQDN)")[0].strip()
-                subdominios.add(subdominio)
-    
-    if subdominios:
-        print("\nList of found subdomains:")
-        for sub in sorted(subdominios):
-            print(sub)
+    if os.path.exists(ruta_txt):
+        print(Fore.CYAN + "\n[+]" + Fore.WHITE + " List of found subdomains:")
+        with open(ruta_txt, "r", encoding='utf-8') as file:
+            subdominios = set()
+            for line in file:
+                if "node -->" in line:
+                    partes = line.strip().split(" --> ")
+                    if len(partes) >= 3:
+                        subdominio = partes[2].split(" (FQDN)")[0].strip()
+                        subdominios.add(subdominio)
+        if subdominios:
+            for sub in sorted(subdominios):
+                print(Fore.GREEN + f" - {sub}")
+        else:
+            print(Fore.YELLOW + "No subdomains found through passive enumeration.")
     else:
-        print("No subdomains found through passive enumeration.")
+        print(Fore.RED + f"[-] Subdomain list file not found: {ruta_txt}")
 
 def procesar_json(ruta_json):
     """
-    Procesa el archivo .json generado por Amass y extrae detalles de los subdominios.
+    Procesa el archivo .json generado por Amass y muestra detalles adicionales.
     """
-    if not os.path.exists(ruta_json):
-        print(f"JSON results file not found: {ruta_json}")
-        return
-    
-    with open(ruta_json, "r", encoding='utf-8') as file:
-        try:
-            datos_json = json.load(file)
-            if not datos_json:
-                print("No data found in the JSON file.")
-                return
-            print("\nSubdomain Details (IPs):")
-            for item in datos_json:
-                nombre = item.get("name", "N/A")
-                direcciones = item.get("addresses", [])
-                ips = ", ".join(addr.get("ip", "") for addr in direcciones)
-                print(f"{nombre}: {ips if ips else 'No IPs found'}")
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON file: {ruta_json}")
+    if os.path.exists(ruta_json):
+        print(Fore.CYAN + "\n[+]" + Fore.WHITE + " Subdomain Details (IPs):")
+        with open(ruta_json, "r", encoding='utf-8') as file:
+            try:
+                datos_json = json.load(file)
+                if datos_json:
+                    for item in datos_json:
+                        nombre = item.get("name", "N/A")
+                        direcciones = item.get("addresses", [])
+                        ips = ", ".join(addr.get("ip", "") for addr in direcciones)
+                        ip_display = Fore.YELLOW + ips if ips else Fore.RED + "No IPs found"
+                        print(Fore.GREEN + f" - {nombre}: {ip_display}")
+                else:
+                    print(Fore.YELLOW + "No data found in the JSON file.")
+            except json.JSONDecodeError:
+                print(Fore.RED + f"[-] Error decoding JSON file: {ruta_json}")
+    else:
+        print(Fore.RED + f"[-] JSON results file not found: {ruta_json}")
 
 def agregar_separador(ruta_txt):
     """
@@ -135,14 +147,15 @@ def agregar_separador(ruta_txt):
         file.write(separador)
 
 def main():
-    print("=== Welcome to AmaBridge ===\n")
+    imprimir_ascii_art()
+    print(Fore.MAGENTA + "Welcome to AmaBridge - Your Bridge to Powerful DNS Enumeration with Amass\n")
     
     # Obtener dominios del usuario
-    dominios_input = input("Enter domain(s) to scan, separated by commas: ").strip()
+    dominios_input = input(Fore.YELLOW + "Enter domain(s) to scan, separated by commas: " + Fore.WHITE).strip()
     dominios = [dom.strip() for dom in dominios_input.split(",") if dom.strip()]
     
     if not dominios:
-        print("No valid domains entered. Exiting.")
+        print(Fore.RED + "No valid domains entered. Exiting.")
         sys.exit(1)
     
     # Preguntar por wordlist
@@ -169,9 +182,10 @@ def main():
             procesar_txt(archivo_txt)
             procesar_json(archivo_json)
         else:
-            print(f"Skipping processing for {dominio} due to Amass execution failure.")
+            print(Fore.RED + f"Skipping processing for {dominio} due to Amass execution failure.")
     
-    print(f"\nAll scans completed. Results are stored in the '{ruta_result}' directory.")
+    print(Fore.MAGENTA + f"\nAll scans completed. Results are stored in the '{ruta_result}' directory.")
+    print(Fore.CYAN + "Stay secure and keep hacking responsibly!\n")
 
 if __name__ == "__main__":
     main()
