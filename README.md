@@ -1,6 +1,10 @@
 # AmaBridge
 
-**AmaBridge** is a Python-based automation tool that serves as a bridge between users and the powerful [OWASP Amass](https://github.com/OWASP/Amass) framework. Designed to simplify and enhance DNS enumeration and subdomain discovery, AmaBridge offers an intuitive interface, organized result management, and flexible configuration options without the need for extensive command-line interactions.
+![AmaBridge Banner](https://github.com/Root-FTW/AmaBridge/blob/main/banner.png)
+
+**AmaBridge** is a powerful Python-based automation tool designed to streamline and enhance DNS enumeration and subdomain discovery using [OWASP Amass](https://github.com/OWASP/Amass). Acting as a bridge between users and Amass, AmaBridge offers a user-friendly interface, organized result management, and flexible configuration options, eliminating the need for complex command-line interactions.
+
+---
 
 ## Table of Contents
 
@@ -12,22 +16,27 @@
   - [Scanning Multiple Domains](#scanning-multiple-domains)
   - [Using a Wordlist](#using-a-wordlist)
   - [Reviewing Results](#reviewing-results)
-- [Automating Scans](#automating-scans)
+- [Automation](#automation)
 - [Technical Details](#technical-details)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
+
+---
 
 ## Why AmaBridge?
 
-While **Amass** is a robust and versatile tool for DNS enumeration, it often requires users to navigate complex command-line options to perform scans effectively. **AmaBridge** streamlines this process by providing a user-friendly Python interface that manages multiple domains, organizes scan results systematically, and offers flexibility in configuration—making it ideal for both beginners and seasoned professionals.
+While **Amass** is an exceptionally robust tool for DNS enumeration, it can often be daunting for users, especially those new to DNS reconnaissance, due to its extensive command-line options and configurations. **AmaBridge** simplifies this process by providing an intuitive Python interface that handles the complexities of Amass, allowing users to focus on analyzing the results rather than configuring options.
 
 **AmaBridge** offers:
 
 - **Simplified Usage:** No need to memorize or input lengthy command-line arguments.
-- **Organized Results:** Each domain scanned has its dedicated result files, preventing data overlap and confusion.
+- **Organized Output:** Each domain scanned has its dedicated result files, preventing data overlap and confusion.
 - **Flexible Wordlist Integration:** Optionally incorporate wordlists for enhanced brute-force capabilities without mandatory dependencies.
 - **Automated Scan Differentiation:** Easily identify and compare results from multiple scans with clear separators and timestamps.
 - **Extensible Architecture:** Easily modify or extend functionality according to specific needs.
+
+---
 
 ## Features
 
@@ -36,39 +45,47 @@ While **Amass** is a robust and versatile tool for DNS enumeration, it often req
 - **Organized Output:** Results are neatly segregated into individual files within a designated `Result` directory.
 - **Scan History Separation:** Previous and new scan results are separated with timestamps for easy comparison.
 - **User-Friendly Prompts:** Interactive prompts guide users through the scanning process.
+- **Colorful Console Output:** Enhanced readability with color-coded messages and stylish ASCII art.
 - **Error Handling:** Gracefully manages errors during execution, ensuring continuous operation across multiple domains.
+- **Detailed Reporting:** Extracts and displays subdomains along with their associated IP addresses for comprehensive analysis.
+
+---
 
 ## Installation
 
-1. **Clone the Repository:**
+### Prerequisites
 
-   ```bash
-   git clone https://github.com/yourusername/AmaBridge.git
-   ```
+1. **Python 3.6 or Higher:**
+   - Download and install Python from the [official website](https://www.python.org/downloads/).
+   - During installation, ensure you check the option to **Add Python to PATH**.
 
-2. **Navigate to the Directory:**
-
-   ```bash
-   cd AmaBridge
-   ```
-
-3. **Ensure Python is Installed:**
-
-   AmaBridge requires Python 3.6 or higher. You can download Python from the [official website](https://www.python.org/downloads/).
-
-4. **Install Amass:**
-
+2. **Amass:**
    - **Download Amass:**
-     Visit the [Amass GitHub Releases](https://github.com/OWASP/Amass/releases) page and download the appropriate binary for your operating system.
-
-   - **Add Amass to PATH:**
-     Extract the binary and add its directory to your system's PATH environment variable to access it from any command prompt.
-
+     - Visit the [Amass GitHub Releases](https://github.com/OWASP/Amass/releases) page.
+     - Download the appropriate binary for your operating system.
+   - **Install Amass:**
+     - Extract the downloaded archive.
+     - Move the `amass` executable to a directory that's included in your system's PATH, or add its directory to the PATH environment variable.
    - **Verify Installation:**
-
      ```cmd
      amass -version
      ```
+     *You should see the Amass version information.*
+
+3. **Python Libraries:**
+   - Install the required Python libraries using pip:
+     ```cmd
+     pip install colorama pyfiglet
+     ```
+
+### Clone the Repository
+
+```cmd
+git clone https://github.com/Root-FTW/AmaBridge.git
+cd AmaBridge
+```
+
+---
 
 ## Usage
 
@@ -86,9 +103,11 @@ While **Amass** is a robust and versatile tool for DNS enumeration, it often req
    python ama_bridge.py
    ```
 
+   *Upon execution, you'll see a stylish ASCII banner and be prompted to input your domains and wordlist options.*
+
 ### Scanning Multiple Domains
 
-During execution, when prompted, enter multiple domains separated by commas. For example:
+During execution, when prompted, enter one or multiple domains separated by commas. For example:
 
 ```
 Enter domain(s) to scan, separated by commas: example.com, testsite.org, sample.net
@@ -108,12 +127,13 @@ Enter domain(s) to scan, separated by commas: example.com, testsite.org, sample.
      ```
      Please enter the local path or URL of your wordlist: C:\Wordlists\my_wordlist.txt
      ```
-
    - **URL Example:**
      ```
      Please enter the local path or URL of your wordlist: https://example.com/wordlist.txt
      ```
      *The script will download the wordlist and save it locally for use.*
+
+   *If you choose not to use a wordlist, simply respond with `no`, and the script will proceed with passive enumeration.*
 
 ### Reviewing Results
 
@@ -125,18 +145,28 @@ Enter domain(s) to scan, separated by commas: example.com, testsite.org, sample.
 
 2. **Locate Individual Result Files:**
 
-   - Each domain has its own set of result files:
-     - `domain_name.txt`: Contains records of the scan.
-     - `domain_name.json`: Structured data with subdomain details.
-     - `domain_name.csv`: Comma-separated values for easier analysis.
+   - **Per Domain Files:**
+     - `example_com.txt`: Contains records of the scan.
+     - `example_com.json`: Structured data with subdomain details.
+     - `example_com.csv`: Comma-separated values for easier analysis.
 
 3. **Understanding Scan Separations:**
 
    - Within each `.txt` file, scans are separated by clear timestamps, allowing users to differentiate between multiple scans for the same domain.
 
-## Automating Scans
+   **Example of Separator:**
+   ```
+   ----- Scan on 2023-10-05 14:30:00 -----
+   ```
 
-To schedule periodic scans using AmaBridge, utilize the **Task Scheduler** in Windows:
+4. **Console Output:**
+   - The script will display a list of found subdomains and their associated IP addresses directly in the console with color-coded formatting for enhanced readability.
+
+---
+
+## Automation
+
+To schedule periodic scans using **AmaBridge**, leverage the **Task Scheduler** in Windows:
 
 1. **Open Task Scheduler:**
    - Press `Win + R`, type `taskschd.msc`, and press Enter.
@@ -145,22 +175,30 @@ To schedule periodic scans using AmaBridge, utilize the **Task Scheduler** in Wi
    - Click on **"Create Task..."** in the Actions pane.
 
 3. **Configure General Settings:**
-   - Name the task (e.g., "AmaBridge Weekly Scan").
-   - Set security options as needed.
+   - **Name:** AmaBridge Weekly Scan
+   - **Description:** Automates weekly DNS enumeration using AmaBridge.
+   - **Security Options:** Choose **"Run whether user is logged on or not"** for unattended scans.
 
 4. **Set Triggers:**
-   - Define when the task should run (e.g., weekly at a specific time).
+   - **Trigger:** Weekly
+   - **Start:** Choose your preferred start date and time.
+   - **Repeat Task Every:** Select the desired frequency.
 
 5. **Define Actions:**
-   - Action: **Start a program**
-   - Program/script: `python`
-   - Add arguments: `C:\AmaBridge\ama_bridge.py`
-   - Start in: `C:\AmaBridge\`
+   - **Action:** Start a program
+   - **Program/script:** `python`
+   - **Add arguments:** `C:\AmaBridge\ama_bridge.py`
+   - **Start in:** `C:\AmaBridge\`
 
-6. **Finalize and Save:**
-   - Review settings and save the task.
+6. **Configure Conditions and Settings:**
+   - Adjust conditions such as running the task only if the computer is on AC power, waking the computer to run the task, etc.
 
-*AmaBridge will now execute automatically based on the defined schedule, ensuring continuous monitoring of your specified domains.*
+7. **Finalize and Save:**
+   - Click **"OK"** and provide your user credentials if prompted.
+
+**AmaBridge** will now execute automatically based on the defined schedule, ensuring continuous monitoring of your specified domains.
+
+---
 
 ## Technical Details
 
@@ -190,10 +228,12 @@ To schedule periodic scans using AmaBridge, utilize the **Task Scheduler** in Wi
 
 ### Key Components
 
-- **Subprocess Module:** Executes Amass commands within the Python script.
-- **JSON Handling:** Parses Amass's structured JSON output for detailed insights.
+- **Colorama:** Enhances console output with color-coded messages for better readability and user experience.
+- **Pyfiglet:** Generates stylish ASCII art for the project title, giving a modern and professional look.
+- **Subprocess Module:** Executes Amass commands within the Python script, capturing output and handling errors.
+- **JSON Handling:** Parses Amass's structured JSON output for detailed insights into subdomain discovery.
 - **User Prompts:** Interactive inputs guide users through scanning and configuration steps.
-- **Error Handling:** Ensures the script continues running even if certain scans fail.
+- **Error Handling:** Ensures the script continues running even if certain scans fail, providing clear feedback on issues.
 
 ### Benefits Over Direct Amass Usage
 
@@ -201,33 +241,97 @@ To schedule periodic scans using AmaBridge, utilize the **Task Scheduler** in Wi
 - **Organized Output:** Automatically segregates results per domain, enhancing readability and management.
 - **Automated Wordlist Handling:** Simplifies the incorporation of wordlists without manual command adjustments.
 - **Scalability:** Efficiently manages multiple domains in a single execution without user intervention.
+- **Visual Enhancements:** Color-coded messages and ASCII art make the tool more engaging and easier to follow.
 - **Repeatable Scans:** Clearly separates multiple scans for the same domain, aiding in tracking changes over time.
+
+---
 
 ## Contributing
 
-Contributions are welcome! If you'd like to enhance AmaBridge, please follow these steps:
+Contributions are welcome! If you'd like to enhance **AmaBridge**, please follow these steps:
 
 1. **Fork the Repository:**
    - Click the **"Fork"** button at the top-right of this page.
 
-2. **Create a New Branch:**
+2. **Clone Your Fork:**
+   ```bash
+   git clone https://github.com/Root-FTW/AmaBridge.git
+   cd AmaBridge
+   ```
+
+3. **Create a New Branch:**
    ```bash
    git checkout -b feature/YourFeatureName
    ```
 
-3. **Commit Your Changes:**
+4. **Make Your Changes:**
+   - Commit your changes with clear and descriptive messages.
    ```bash
    git commit -m "Add Your Feature Description"
    ```
 
-4. **Push to the Branch:**
+5. **Push to the Branch:**
    ```bash
    git push origin feature/YourFeatureName
    ```
 
-5. **Open a Pull Request:**
-   - Navigate to your forked repository and click **"New Pull Request"**.
+6. **Open a Pull Request:**
+   - Navigate to your forked repository on GitHub and click **"New Pull Request"**.
+
+---
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## Contact
+
+For any questions, suggestions, or support, feel free to reach out via [GitHub Issues](https://github.com/Root-FTW/AmaBridge/issues) or contact me directly through my GitHub profile.
+
+---
+
+**Stay secure and keep hacking responsibly with AmaBridge!**
+
+```
+
+### Explicación de las Mejoras en README.md
+
+1. **Inclusión de ASCII Art Banner:**
+   - Agrega una imagen de banner (puedes crear una con Pyfiglet y capturarla o diseñarla) para dar un aspecto más profesional.
+
+2. **Sección de Contacto:**
+   - Facilita que otros usuarios te contacten a través de GitHub Issues o directamente desde tu perfil.
+
+3. **Descripción Más Detallada:**
+   - Explica en profundidad por qué **AmaBridge** es superior a usar Amass directamente, destacando su facilidad de uso, organización y visualización mejorada.
+
+4. **Automatización con Task Scheduler:**
+   - Detalla cómo automatizar los escaneos utilizando el Programador de Tareas de Windows.
+
+5. **Mejoras Técnicas:**
+   - Describe los componentes clave del script, cómo maneja las entradas y salidas, y los beneficios técnicos que ofrece.
+
+6. **Contribuciones y Licencia:**
+   - Fomenta a otros a contribuir al proyecto y especifica la licencia bajo la cual se distribuye el proyecto.
+
+7. **Visualización y Formato:**
+   - Utiliza encabezados claros, listas y formatos de código para mejorar la legibilidad y estructura del documento.
+
+---
+
+## 3. Captura de Pantalla o Banner Art (Opcional)
+
+Para hacer tu proyecto aún más atractivo, puedes añadir un banner en **ASCII art** o una imagen personalizada al inicio del script. Aquí te dejo un ejemplo usando **Pyfiglet**:
+
+```python
+import pyfiglet
+
+def imprimir_ascii_art():
+    """
+    Imprime el título del proyecto en ASCII art con colores.
+    """
+    ascii_art = pyfiglet.figlet_format("AmaBridge", font="slant")
+    print(Fore.CYAN + ascii_art)
+```
