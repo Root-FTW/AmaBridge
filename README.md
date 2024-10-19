@@ -289,5 +289,3 @@ For any questions, suggestions, or support, feel free to reach out via [GitHub I
 ---
 
 **Stay secure and keep hacking responsibly with AmaBridge!**
-
-```
